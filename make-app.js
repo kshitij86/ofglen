@@ -1,6 +1,8 @@
 const fs = require('fs');
 const { exec } = require('child_process');
 const pkgs = require('./packages.js');
+const bp = require('./boilerplate.js');
+const path = require('path');
 
 // Create a new folder with the given name
 async function createDirectory(app_name){
@@ -40,6 +42,16 @@ async function installModules(app_name){
 	return Promise.resolve(true);
 }
 
+// Generate app file from boilerplate
+async function genServerFile(app_name){
+	var pathToApp = path.join(__dirname, `./${app_name}/app.js`);
+	fs.writeFile(pathToApp, bp, (err) => {
+		if(err) throw err; 
+		console.log('Saved contents to app.js');
+	});
+	return Promise.resolve(true);
+}
+
 // Initialize the app with default settings
 function initializeApp(app_name){
 	createDirectory(app_name).then((cdResult) => {
@@ -63,6 +75,11 @@ function initializeApp(app_name){
 				// Once initialized, install packages in this directory
 				installModules(app_name).then((imResult) => {
 					console.log(`Installing all modules for ${app_name}...`);
+					console.log(`Generating boilerplate code...`);
+					genServerFile(app_name).then((genRes) => {
+						if(!genRes) process.exit(1);
+						console.log("Done");	
+					});
 				});
 			}
 		});
@@ -72,4 +89,4 @@ function initializeApp(app_name){
 
 module.exports = function(app_name){
 	initializeApp(app_name);
-}
+};
